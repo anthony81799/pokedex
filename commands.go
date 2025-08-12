@@ -6,13 +6,13 @@ import (
 	"os"
 )
 
-func commandExit(cfg *config) error {
+func commandExit(cfg *config, params ...string) error {
 	fmt.Println("Closing the Pokedex... Goodbye!")
 	os.Exit(0)
 	return nil
 }
 
-func commandHelp(cfg *config) error {
+func commandHelp(cfg *config, params ...string) error {
 	fmt.Println()
 	fmt.Println("Welcome to the Pokedex!")
 	fmt.Println("Usage:")
@@ -24,7 +24,7 @@ func commandHelp(cfg *config) error {
 	return nil
 }
 
-func commandMapf(cfg *config) error {
+func commandMapf(cfg *config, params ...string) error {
 	locationsResp, err := cfg.pokeapiClient.ListLocations(cfg.nextLocationsURL)
 	if err != nil {
 		return err
@@ -39,7 +39,7 @@ func commandMapf(cfg *config) error {
 	return nil
 }
 
-func commandMapb(cfg *config) error {
+func commandMapb(cfg *config, params ...string) error {
 	if cfg.prevLocationsURL == nil {
 		return errors.New("you're on the first page")
 	}
@@ -54,6 +54,24 @@ func commandMapb(cfg *config) error {
 
 	for _, loc := range locationResp.Results {
 		fmt.Println(loc.Name)
+	}
+	return nil
+}
+
+func commandExplore(cfg *config, params ...string) error {
+	if len(params) == 0 {
+		return errors.New("the explore command needs a location argument")
+	}
+
+	fmt.Printf("Exploring %s...\n", params[0])
+	locationResp, err := cfg.pokeapiClient.GetLocation(params[0])
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("Found Pokemon:")
+	for _, pokemon := range locationResp.PokemonEncounters {
+		fmt.Printf(" - %s\n", pokemon.Pokemon.Name)
 	}
 	return nil
 }
