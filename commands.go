@@ -38,6 +38,7 @@ func commandCatch(cfg *config, params ...string) error {
 	}
 
 	fmt.Printf("%s was caught!\n", pokemon.Name)
+	fmt.Println("You may now inspect it with the inspect command.")
 
 	cfg.caughtPokemon[pokemon.Name] = pokemon
 	return nil
@@ -116,6 +117,15 @@ func commandMapb(cfg *config, params ...string) error {
 	for _, loc := range locationResp.Results {
 		fmt.Println(loc.Name)
 	}
+	return nil
+}
+
+func commandPokedex(cfg *config, params ...string) error {
+	fmt.Println("Your Pokedex:")
+	for _, pokemon := range cfg.caughtPokemon {
+		fmt.Printf(" - %s\n", pokemon.Name)
+	}
+
 	return nil
 }
 
