@@ -3,14 +3,9 @@ package main
 import (
 	"errors"
 	"fmt"
+	"math/rand"
 	"os"
 )
-
-func commandExit(cfg *config, params ...string) error {
-	fmt.Println("Closing the Pokedex... Goodbye!")
-	os.Exit(0)
-	return nil
-}
 
 func commandHelp(cfg *config, params ...string) error {
 	fmt.Println()
@@ -21,6 +16,48 @@ func commandHelp(cfg *config, params ...string) error {
 		fmt.Printf("%s: %s\n", cmd.name, cmd.description)
 	}
 	fmt.Println()
+	return nil
+}
+
+func commandCatch(cfg *config, params ...string) error {
+	if len(params) == 0 {
+		return errors.New("you must provide a pokemon")
+	}
+
+	pokemon, err := cfg.pokeapiClient.GetPokemon(params[0])
+	if err != nil {
+		return err
+	}
+
+	res := rand.Intn(pokemon.BaseExperience)
+
+	fmt.Printf("Throwing a Pokeball at %s...\n", pokemon.Name)
+	if res > 40 {
+		fmt.Printf("%s escaped!\n", pokemon.Name)
+		return nil
+	}
+
+	fmt.Printf("%s was caught!\n", pokemon.Name)
+
+	cfg.caughtPokemon[pokemon.Name] = pokemon
+	return nil
+}
+
+func commandExplore(cfg *config, params ...string) error {
+	if len(params) == 0 {
+		return errors.New("you must provide a location")
+	}
+
+	fmt.Printf("Exploring %s...\n", params[0])
+	locationResp, err := cfg.pokeapiClient.GetLocation(params[0])
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("Found Pokemon:")
+	for _, pokemon := range locationResp.PokemonEncounters {
+		fmt.Printf(" - %s\n", pokemon.Pokemon.Name)
+	}
 	return nil
 }
 
@@ -58,20 +95,8 @@ func commandMapb(cfg *config, params ...string) error {
 	return nil
 }
 
-func commandExplore(cfg *config, params ...string) error {
-	if len(params) == 0 {
-		return errors.New("the explore command needs a location argument")
-	}
-
-	fmt.Printf("Exploring %s...\n", params[0])
-	locationResp, err := cfg.pokeapiClient.GetLocation(params[0])
-	if err != nil {
-		return err
-	}
-
-	fmt.Println("Found Pokemon:")
-	for _, pokemon := range locationResp.PokemonEncounters {
-		fmt.Printf(" - %s\n", pokemon.Pokemon.Name)
-	}
+func commandExit(cfg *config, params ...string) error {
+	fmt.Println("Closing the Pokedex... Goodbye!")
+	os.Exit(0)
 	return nil
 }
